@@ -4,6 +4,8 @@ import { usePathname } from "next/navigation";
 import { NAV_ITEMS } from "@/lib/nav-items";
 import { X, Zap } from "lucide-react";
 import { cn } from "@/lib/utils"; // see Step 7
+import { useProfileStore } from "@/lib/stores/profileStore";
+import { Avatar } from "@/components/ui/Avatar";
 
 interface SidebarProps {
     isOpen: boolean;
@@ -12,6 +14,7 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
+    const { profile } = useProfileStore();
 
     return (
         <>
@@ -91,15 +94,24 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
                 {/* Footer */}
                 <div className="p-4 border-t border-zinc-800/60">
-                    <div className="flex items-center gap-3 px-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex-shrink-0" />
+                    <Link
+                        href="/dashboard/settings"
+                        onClick={onClose}
+                        className="flex items-center gap-3 px-2 py-1.5 -mx-1 rounded-lg hover:bg-zinc-800/60 transition-colors"
+                    >
+                        <Avatar
+                            name={profile.name}
+                            src={profile.avatar}
+                            size={32}
+                            className="flex-shrink-0"
+                        />
                         <div className="min-w-0">
                             <p className="text-sm font-medium text-zinc-100 truncate">
-                                Alex Morgan
+                                {profile.name}
                             </p>
-                            <p className="text-xs text-zinc-500 truncate">Pro Plan</p>
+                            <p className="text-xs text-zinc-500 truncate">{profile.plan}</p>
                         </div>
-                    </div>
+                    </Link>
                 </div>
             </aside>
         </>

@@ -9,6 +9,7 @@ interface PortfolioState {
   removeHolding: (id: string) => void;
   updateHolding: (id: string, updates: Partial<Holding>) => void;
   addTransaction: (t: Omit<Transaction, 'id'>) => void;
+  removeTransaction: (id: string) => void;
 }
 
 export const usePortfolioStore = create<PortfolioState>()(
@@ -31,6 +32,10 @@ export const usePortfolioStore = create<PortfolioState>()(
       addTransaction: (t) =>
         set((state) => ({
           transactions: [{ ...t, id: crypto.randomUUID() }, ...state.transactions],
+        })),
+      removeTransaction: (id) =>
+        set((state) => ({
+          transactions: state.transactions.filter((t) => t.id !== id),
         })),
     }),
     { name: 'financeai-portfolio' }

@@ -1,13 +1,20 @@
 "use client";
+import Link from "next/link";
 import { Menu, Search, Bell } from "lucide-react";
-import { useTheme } from "@/context/ThemeContext";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import { Avatar } from "@/components/ui/Avatar";
+import { useProfileStore } from "@/lib/stores/profileStore";
+import { useAlertsStore } from "@/lib/stores/alertsStore";
 
 interface NavbarProps {
     onMenuClick: () => void;
 }
 
 export default function Navbar({ onMenuClick }: NavbarProps) {
+    const { profile } = useProfileStore();
+    const activeAlerts = useAlertsStore((s) =>
+        s.alerts.filter((a) => a.active).length
+    );
     return (
         <header className="h-16 border-b border-zinc-800/60 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-10 flex items-center px-4 gap-4">
             {/* Mobile hamburger */}
@@ -35,16 +42,28 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 
             <div className="ml-auto flex items-center gap-2">
                 {/* Notifications */}
-                <button className="relative p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800/60 transition-colors">
+                <Link
+                    href="/dashboard/alerts"
+                    className="relative p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800/60 transition-colors"
+                >
                     <Bell size={18} />
-                    <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-emerald-400 rounded-full" />
-                </button>
+                    {activeAlerts > 0 && (
+                        <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-emerald-400 rounded-full" />
+                    )}
+                </Link>
 
                 {/* Theme Toggle */}
                 <ThemeToggle />
 
                 {/* Avatar */}
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 cursor-pointer" />
+                <Link href="/dashboard/settings" aria-label="Profile settings">
+                    <Avatar
+                        name={profile.name}
+                        src={profile.avatar}
+                        size={32}
+                        className="cursor-pointer ring-1 ring-zinc-800 hover:ring-emerald-500/40 transition-all"
+                    />
+                </Link>
             </div>
         </header>
     );
