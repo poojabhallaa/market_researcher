@@ -1,4 +1,4 @@
-import { searchSymbol } from '@/lib/api/finnhub';
+import { searchSymbol } from '@/lib/api/twelvedata';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

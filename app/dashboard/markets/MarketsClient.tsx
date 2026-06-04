@@ -8,6 +8,7 @@ import { TimeframeSelector, getTimeframeParams, type Timeframe } from '@/compone
 import { CompanyOverview } from '@/components/markets/CompanyOverview';
 import { MarketStats } from '@/components/markets/MarketStats';
 import { MarketNewsFeed } from '@/components/markets/MarketNewsFeed';
+import { MarketSituation } from '@/components/markets/MarketSituation';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { LiveDot } from '@/components/ui/LiveDot';
 
@@ -66,6 +67,9 @@ export function MarketsClient({ defaultSymbol }: { defaultSymbol: string }) {
 
       {/* Timeframe selector */}
       <TimeframeSelector value={timeframe} onChange={setTimeframe} />
+
+      {/* AI briefing of the live market situation (Gemini, grounded) */}
+      <MarketSituation symbol={symbol} />
 
       {/* Two columns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

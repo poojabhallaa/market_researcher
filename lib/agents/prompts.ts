@@ -38,3 +38,9 @@ When giving strategy recommendations:
 } as const;
 
 export type AgentType = keyof typeof AGENT_PROMPTS;
+
+/**
+ * Appended to every grounded agent prompt. The model has live Google Search,
+ * so it fetches real market data itself instead of calling separate data APIs.
+ */
+export const GROUNDING_NOTE = `You have live Google Search access. Use it to fetch current stock prices, quotes, recent news, and the latest reported financials before answering. Always state figures as of "today" and name your sources briefly. If a number can't be verified via search, say so rather than guessing. Keep answers concise and well-structured (use markdown headings and bullets).`;

@@ -18,7 +18,7 @@ export default function InsightsPage() {
         </div>
         <div>
           <h1 className="text-lg font-bold text-zinc-100">AI Financial Intelligence</h1>
-          <p className="text-xs text-zinc-500">Multi-agent analysis powered by Claude</p>
+          <p className="text-xs text-zinc-500">Multi-agent analysis powered by Gemini</p>
         </div>
       </div>
 

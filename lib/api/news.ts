@@ -32,6 +32,11 @@ async function fetchRssNews(symbol: string): Promise<NewsArticle[]> {
   }
 }
 
+/** Per-company headlines from Yahoo Finance RSS — no API key required. */
+export async function getCompanyNews(symbol: string): Promise<NewsArticle[]> {
+  return fetchRssNews(symbol);
+}
+
 export async function getTopFinanceNews(): Promise<NewsArticle[]> {
   if (!key()) return fetchRssNews('AAPL,MSFT,GOOGL');
 

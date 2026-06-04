@@ -1,4 +1,4 @@
-import { getQuote } from '@/lib/api/finnhub';
+import { getQuote } from '@/lib/api/twelvedata';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -7,6 +7,7 @@ export async function GET(request: Request) {
 
   try {
     const data = await getQuote(symbol.toUpperCase());
+    if (!data) return Response.json({ error: 'quote unavailable' }, { status: 404 });
     return Response.json(data);
   } catch (err) {
     return Response.json({ error: String(err) }, { status: 500 });

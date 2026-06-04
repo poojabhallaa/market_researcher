@@ -1,4 +1,4 @@
-import { getCandles } from '@/lib/api/finnhub';
+import { getTimeSeries as getCandles } from '@/lib/api/twelvedata';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

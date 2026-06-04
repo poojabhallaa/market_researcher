@@ -1,36 +1,18 @@
-import { streamText, stepCountIs, type ModelMessage } from 'ai';
-import { createGateway } from '@ai-sdk/gateway';
-import { AGENT_PROMPTS, type AgentType } from '@/lib/agents/prompts';
-import { financialTools, newsTools, allTools } from '@/lib/agents/tools';
+import { AGENT_PROMPTS, GROUNDING_NOTE, type AgentType } from '@/lib/agents/prompts';
+import { streamGeminiText, type ChatTurn } from '@/lib/api/gemini';
 
 export const maxDuration = 60;
 
-const AGENT_TOOLS: Record<AgentType, object> = {
-  financial: financialTools,
-  sentiment: newsTools,
-  forecasting: { ...financialTools },
-  strategy: allTools,
-};
-
 export async function POST(request: Request) {
-  const body = await request.json() as {
-    messages?: ModelMessage[];
+  const body = (await request.json()) as {
+    messages?: ChatTurn[];
     agentType?: AgentType;
   };
 
-  const messages: ModelMessage[] = body.messages ?? [];
+  const messages: ChatTurn[] = body.messages ?? [];
   const agentType: AgentType = body.agentType ?? 'financial';
+  const system = `${AGENT_PROMPTS[agentType] ?? AGENT_PROMPTS.financial}\n\n${GROUNDING_NOTE}`;
 
-  const gateway = createGateway({ apiKey: process.env.AI_GATEWAY_API_KEY });
-  const tools = AGENT_TOOLS[agentType] ?? financialTools;
-
-  const result = streamText({
-    model: gateway('anthropic/claude-sonnet-4.6'),
-    system: AGENT_PROMPTS[agentType],
-    messages,
-    tools: tools as Parameters<typeof streamText>[0]['tools'],
-    stopWhen: stepCountIs(10),
-  });
-
-  return result.toTextStreamResponse();
+  // Single grounded Gemini call — answer streams straight back into the chat.
+  return streamGeminiText({ system, messages, search: true });
 }

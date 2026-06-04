@@ -13,8 +13,9 @@ export function useQuote(symbol: string) {
   return useQuery<Quote | null>({
     queryKey: ['quote', symbol],
     queryFn: () => fetchQuote(symbol),
-    refetchInterval: 15_000,
+    // Twelve Data free tier is 8 credits/min; poll once a minute to stay within it.
+    refetchInterval: 60_000,
     enabled: !!symbol,
-    staleTime: 10_000,
+    staleTime: 50_000,
   });
 }
