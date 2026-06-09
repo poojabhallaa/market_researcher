@@ -20,7 +20,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             {/* Mobile hamburger */}
             <button
                 onClick={onMenuClick}
-                className="lg:hidden text-zinc-400 hover:text-white transition-colors p-1"
+                className="lg:hidden text-zinc-400 hover:text-zinc-50 transition-colors p-1"
             >
                 <Menu size={20} />
             </button>
@@ -44,7 +44,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                 {/* Notifications */}
                 <Link
                     href="/dashboard/alerts"
-                    className="relative p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800/60 transition-colors"
+                    className="relative p-2 text-zinc-400 hover:text-zinc-50 rounded-lg hover:bg-zinc-800/60 transition-colors"
                 >
                     <Bell size={18} />
                     {activeAlerts > 0 && (

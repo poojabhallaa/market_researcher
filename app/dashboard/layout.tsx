@@ -1,5 +1,7 @@
 import DashboardShell from "@/components/layout/DashboardShell";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { RequireAuth } from "@/components/auth/RequireAuth";
+import { DataSync } from "@/components/providers/DataSync";
 
 export default function DashboardLayout({
     children,
@@ -7,8 +9,12 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     return (
-        <QueryProvider>
-            <DashboardShell>{children}</DashboardShell>
-        </QueryProvider>
+        <RequireAuth>
+            <DataSync>
+                <QueryProvider>
+                    <DashboardShell>{children}</DashboardShell>
+                </QueryProvider>
+            </DataSync>
+        </RequireAuth>
     );
 }

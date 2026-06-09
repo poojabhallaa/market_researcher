@@ -1,9 +1,10 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type { PriceAlert } from '@/lib/types/alerts';
+import { addAlertDoc, removeAlertDoc, updateAlertDoc } from '@/lib/firebase/db';
 
 interface AlertsState {
   alerts: PriceAlert[];
+  setAlerts: (a: PriceAlert[]) => void;
   addAlert: (a: Omit<PriceAlert, 'id' | 'active' | 'triggeredAt' | 'createdAt'>) => void;
   removeAlert: (id: string) => void;
   toggleAlert: (id: string) => void;
@@ -11,44 +12,23 @@ interface AlertsState {
   resetTrigger: (id: string) => void;
 }
 
-export const useAlertsStore = create<AlertsState>()(
-  persist(
-    (set) => ({
-      alerts: [],
-      addAlert: (a) =>
-        set((state) => ({
-          alerts: [
-            {
-              ...a,
-              id: crypto.randomUUID(),
-              active: true,
-              triggeredAt: null,
-              createdAt: new Date().toISOString(),
-            },
-            ...state.alerts,
-          ],
-        })),
-      removeAlert: (id) =>
-        set((state) => ({ alerts: state.alerts.filter((a) => a.id !== id) })),
-      toggleAlert: (id) =>
-        set((state) => ({
-          alerts: state.alerts.map((a) =>
-            a.id === id ? { ...a, active: !a.active } : a
-          ),
-        })),
-      markTriggered: (id, when) =>
-        set((state) => ({
-          alerts: state.alerts.map((a) =>
-            a.id === id ? { ...a, triggeredAt: when, active: false } : a
-          ),
-        })),
-      resetTrigger: (id) =>
-        set((state) => ({
-          alerts: state.alerts.map((a) =>
-            a.id === id ? { ...a, triggeredAt: null, active: true } : a
-          ),
-        })),
+export const useAlertsStore = create<AlertsState>()((set, get) => ({
+  alerts: [],
+  setAlerts: (alerts) => set({ alerts }),
+  addAlert: (a) =>
+    void addAlertDoc({
+      ...a,
+      active: true,
+      triggeredAt: null,
+      createdAt: new Date().toISOString(),
     }),
-    { name: 'financeai-alerts' }
-  )
-);
+  removeAlert: (id) => void removeAlertDoc(id),
+  toggleAlert: (id) => {
+    const alert = get().alerts.find((a) => a.id === id);
+    if (alert) void updateAlertDoc(id, { active: !alert.active });
+  },
+  markTriggered: (id, when) =>
+    void updateAlertDoc(id, { triggeredAt: when, active: false }),
+  resetTrigger: (id) =>
+    void updateAlertDoc(id, { triggeredAt: null, active: true }),
+}));

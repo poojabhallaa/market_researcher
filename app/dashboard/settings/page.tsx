@@ -30,7 +30,7 @@ const NOTIFICATIONS: { key: keyof NotificationPreferences; icon: typeof Bell; la
   { key: 'priceAlerts', icon: Bell, label: 'Price Alerts', desc: 'Notify me when a price alert is triggered' },
   { key: 'emailDigest', icon: Mail, label: 'Email Digest', desc: 'Daily summary of your portfolio activity' },
   { key: 'weeklyReport', icon: FileBarChart, label: 'Weekly Report', desc: 'Performance recap every Monday morning' },
-  { key: 'productNews', icon: Megaphone, label: 'Product News', desc: 'Updates about new FinanceAI features' },
+  { key: 'productNews', icon: Megaphone, label: 'Product News', desc: 'Updates about new Finanalyst features' },
 ];
 
 export default function SettingsPage() {

@@ -1,16 +1,16 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type { UserProfile, NotificationPreferences } from '@/lib/types/profile';
+import { writeProfile } from '@/lib/firebase/db';
 
-const DEFAULT_PROFILE: UserProfile = {
-  name: 'Alex Morgan',
-  email: 'alex.morgan@financeai.com',
-  phone: '+1 (415) 555-0142',
+export const DEFAULT_PROFILE: UserProfile = {
+  name: 'Investor',
+  email: '',
+  phone: '',
   avatar: null,
-  plan: 'Pro Plan',
-  role: 'Portfolio Manager',
-  location: 'San Francisco, CA',
-  bio: 'Long-term investor focused on tech and clean energy. Tracking 12 positions across global markets.',
+  plan: 'Free Plan',
+  role: 'Investor',
+  location: '',
+  bio: '',
   currency: 'USD',
   twoFactor: false,
   notifications: {
@@ -23,35 +23,46 @@ const DEFAULT_PROFILE: UserProfile = {
 
 interface ProfileState {
   profile: UserProfile;
+  // Hydrated by the Firestore sync layer:
+  setProfile: (p: UserProfile) => void;
+  // Writes go to Firestore and update local state optimistically.
   updateProfile: (updates: Partial<UserProfile>) => void;
   setAvatar: (dataUrl: string | null) => void;
   toggleNotification: (key: keyof NotificationPreferences) => void;
   reset: () => void;
 }
 
-export const useProfileStore = create<ProfileState>()(
-  persist(
-    (set) => ({
-      profile: DEFAULT_PROFILE,
-      updateProfile: (updates) =>
-        set((state) => ({ profile: { ...state.profile, ...updates } })),
-      setAvatar: (dataUrl) =>
-        set((state) => ({ profile: { ...state.profile, avatar: dataUrl } })),
-      toggleNotification: (key) =>
-        set((state) => ({
-          profile: {
-            ...state.profile,
-            notifications: {
-              ...state.profile.notifications,
-              [key]: !state.profile.notifications[key],
-            },
-          },
-        })),
-      reset: () => set({ profile: DEFAULT_PROFILE }),
-    }),
-    { name: 'financeai-profile' }
-  )
-);
+export const useProfileStore = create<ProfileState>()((set, get) => ({
+  profile: DEFAULT_PROFILE,
+  setProfile: (profile) => set({ profile }),
+  updateProfile: (updates) => {
+    set((state) => ({ profile: { ...state.profile, ...updates } }));
+    void writeProfile(updates);
+  },
+  setAvatar: (avatar) => {
+    set((state) => ({ profile: { ...state.profile, avatar } }));
+    void writeProfile({ avatar });
+  },
+  toggleNotification: (key) => {
+    const next = !get().profile.notifications[key];
+    set((state) => ({
+      profile: {
+        ...state.profile,
+        notifications: { ...state.profile.notifications, [key]: next },
+      },
+    }));
+    void writeProfile({
+      notifications: { ...get().profile.notifications, [key]: next },
+    });
+  },
+  reset: () => {
+    // Preserve identity tied to the auth account, reset everything else.
+    const { name, email } = get().profile;
+    const restored = { ...DEFAULT_PROFILE, name, email };
+    set({ profile: restored });
+    void writeProfile(restored);
+  },
+}));
 
 export function initials(name: string): string {
   return name

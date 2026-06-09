@@ -45,7 +45,7 @@ export function MarketNewsFeed({ symbol }: { symbol: string }) {
               className="block py-4 group hover:bg-zinc-800/20 -mx-2 px-2 rounded-lg transition-colors"
             >
               <div className="flex items-start justify-between gap-2 mb-1.5">
-                <h4 className="text-sm text-zinc-200 group-hover:text-white transition-colors leading-snug line-clamp-2">
+                <h4 className="text-sm text-zinc-200 group-hover:text-zinc-50 transition-colors leading-snug line-clamp-2">
                   {article.headline}
                 </h4>
                 <ExternalLink className="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-400 shrink-0 mt-0.5 transition-colors" />

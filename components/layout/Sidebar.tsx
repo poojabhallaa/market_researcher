@@ -2,9 +2,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS } from "@/lib/nav-items";
-import { X, Zap } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { X, Zap, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils"; // see Step 7
 import { useProfileStore } from "@/lib/stores/profileStore";
+import { useAuth } from "@/context/AuthContext";
 import { Avatar } from "@/components/ui/Avatar";
 
 interface SidebarProps {
@@ -14,7 +16,14 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
+    const router = useRouter();
     const { profile } = useProfileStore();
+    const { logOut } = useAuth();
+
+    const handleLogout = async () => {
+        await logOut();
+        router.replace("/login");
+    };
 
     return (
         <>
@@ -42,13 +51,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         <div className="w-7 h-7 rounded-md bg-emerald-500 flex items-center justify-center">
                             <Zap size={15} className="text-black" strokeWidth={2.5} />
                         </div>
-                        <span className="text-white font-semibold text-sm tracking-tight">
-                            FinanceAI
+                        <span className="text-zinc-50 font-semibold text-sm tracking-tight">
+                            Finanalyst
                         </span>
                     </Link>
                     <button
                         onClick={onClose}
-                        className="lg:hidden text-zinc-400 hover:text-white transition-colors"
+                        className="lg:hidden text-zinc-400 hover:text-zinc-50 transition-colors"
                     >
                         <X size={18} />
                     </button>
@@ -93,7 +102,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </nav>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-zinc-800/60">
+                <div className="p-4 border-t border-zinc-800/60 space-y-1">
                     <Link
                         href="/dashboard/settings"
                         onClick={onClose}
@@ -112,6 +121,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             <p className="text-xs text-zinc-500 truncate">{profile.plan}</p>
                         </div>
                     </Link>
+                    <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-3 py-2 -mx-1 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/60 transition-colors"
+                    >
+                        <LogOut size={16} className="flex-shrink-0 text-zinc-500" />
+                        <span className="font-medium">Sign out</span>
+                    </button>
                 </div>
             </aside>
         </>

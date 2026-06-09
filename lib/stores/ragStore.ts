@@ -17,6 +17,6 @@ export const useRagStore = create<RagState>()(
       removeDocument: (id) =>
         set((state) => ({ documents: state.documents.filter((d) => d.id !== id) })),
     }),
-    { name: 'financeai-rag' }
+    { name: 'finanalyst-rag' }
   )
 );
