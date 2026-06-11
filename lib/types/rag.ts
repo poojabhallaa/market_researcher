@@ -8,7 +8,8 @@ export interface RagChunk {
 export interface RagDocument {
   id: string;
   title: string;
-  content: string;
+  /** Full raw text. Present in-memory after upload but NOT persisted to Firestore. */
+  content?: string;
   uploadedAt: number;
   chunks: RagChunk[];
 }

@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // All user data lives under /users/{userId}. Only the authenticated owner
+    // can read or write their document and any subcollection document.
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      match /holdings/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /transactions/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /alerts/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /ragDocuments/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+  }
+}
