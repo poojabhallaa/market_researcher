@@ -6,7 +6,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Finanalyst",
   description: "AI-powered financial intelligence platform",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
+
 
 export default function RootLayout({
   children,
