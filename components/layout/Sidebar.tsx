@@ -1,9 +1,10 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS } from "@/lib/nav-items";
 import { useRouter } from "next/navigation";
-import { X, Zap, LogOut } from "lucide-react";
+import { X, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils"; // see Step 7
 import { useProfileStore } from "@/lib/stores/profileStore";
 import { useAuth } from "@/context/AuthContext";
@@ -48,9 +49,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 {/* Logo */}
                 <div className="flex items-center justify-between px-5 h-16 border-b border-zinc-800/60">
                     <Link href="/dashboard" className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-md bg-emerald-500 flex items-center justify-center">
-                            <Zap size={15} className="text-black" strokeWidth={2.5} />
-                        </div>
+                        <Image
+                            src="/logo.png"
+                            alt="Finanalyst logo"
+                            width={28}
+                            height={28}
+                            className="h-7 w-7 rounded-md object-cover"
+                            priority
+                        />
                         <span className="text-zinc-50 font-semibold text-sm tracking-tight">
                             Finanalyst
                         </span>

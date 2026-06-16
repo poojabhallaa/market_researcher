@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Zap, Loader2, Mail, Lock } from 'lucide-react';
+import { Loader2, Mail, Lock } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { GoogleButton, authErrorMessage } from '@/components/auth/AuthShared';
 
@@ -49,9 +50,14 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-zinc-100 px-4">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center mb-3">
-            <Zap size={20} className="text-black" strokeWidth={2.5} />
-          </div>
+          <Image
+            src="/logo.png"
+            alt="Finanalyst logo"
+            width={40}
+            height={40}
+            className="h-10 w-10 rounded-lg object-cover mb-3"
+            priority
+          />
           <h1 className="text-xl font-semibold tracking-tight">Welcome back</h1>
           <p className="text-sm text-zinc-500 mt-1">Sign in to your Finanalyst account</p>
         </div>

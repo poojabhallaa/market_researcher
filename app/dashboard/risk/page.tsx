@@ -1,6 +1,6 @@
 'use client';
-import { useState } from 'react';
-import { Shield, RefreshCw } from 'lucide-react';
+import { useState, useCallback, useRef } from 'react';
+import { Shield, RefreshCw, BrainCircuit, Send, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { usePortfolioStore } from '@/lib/stores/portfolioStore';
 import { RiskScoreGauge } from '@/components/risk/RiskScoreGauge';
@@ -9,7 +9,130 @@ import { CorrelationMatrix } from '@/components/risk/CorrelationMatrix';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Skeleton } from '@/components/ui/Skeleton';
 import type { RiskMetrics, CorrelationMatrix as CorrelationMatrixType } from '@/lib/types/risk';
+import type { Holding } from '@/lib/types/portfolio';
 import Link from 'next/link';
+
+const PRESET_QUESTIONS = [
+  'What is my biggest risk factor right now?',
+  'How can I reduce my concentration risk?',
+  'Am I over-exposed to market downturns?',
+  'How does my portfolio compare to a balanced benchmark?',
+];
+
+function AIRiskAnalysis({
+  holdings,
+  metrics,
+}: {
+  holdings: Holding[];
+  metrics?: RiskMetrics;
+}) {
+  const [question, setQuestion] = useState('');
+  const [response, setResponse] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const runAnalysis = useCallback(
+    async (q: string) => {
+      if (!q.trim() || isStreaming) return;
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      setResponse('');
+      setIsStreaming(true);
+
+      try {
+        const res = await fetch('/api/risk/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ holdings, metrics, question: q }),
+          signal: controller.signal,
+        });
+
+        if (!res.ok || !res.body) throw new Error(`Request failed: ${res.status}`);
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulated = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          accumulated += decoder.decode(value, { stream: true });
+          setResponse(accumulated);
+        }
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          setResponse(`Error: ${err instanceof Error ? err.message : 'Something went wrong'}`);
+        }
+      } finally {
+        setIsStreaming(false);
+      }
+    },
+    [holdings, metrics, isStreaming]
+  );
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    runAnalysis(question);
+  };
+
+  return (
+    <GlassCard className="p-6">
+      <div className="flex items-center gap-2 mb-4">
+        <BrainCircuit className="w-4 h-4 text-emerald-400" />
+        <h3 className="text-sm font-semibold text-zinc-200">AI Risk Analysis</h3>
+        <span className="text-xs text-zinc-600 ml-1">Powered by Gemini</span>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-4">
+        {PRESET_QUESTIONS.map((q) => (
+          <button
+            key={q}
+            onClick={() => {
+              setQuestion(q);
+              runAnalysis(q);
+            }}
+            disabled={isStreaming}
+            className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full bg-zinc-800/60 text-zinc-400 border border-zinc-700/40 hover:border-emerald-500/30 hover:text-emerald-400 transition-colors disabled:opacity-40"
+          >
+            <ChevronRight className="w-3 h-3" />
+            {q}
+          </button>
+        ))}
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <input
+          type="text"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder="Ask about your portfolio risk (e.g. What is my downside risk in a market crash?)"
+          className="flex-1 bg-zinc-800/60 border border-zinc-700/40 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-emerald-500/40"
+          disabled={isStreaming}
+        />
+        <button
+          type="submit"
+          disabled={isStreaming || !question.trim()}
+          className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-sm font-medium hover:bg-emerald-500/20 transition-colors disabled:opacity-40"
+        >
+          <Send className="w-3.5 h-3.5" />
+          {isStreaming ? 'Analyzing…' : 'Analyze'}
+        </button>
+      </form>
+
+      {response && (
+        <div className="mt-4 rounded-lg bg-zinc-800/40 border border-zinc-700/30 p-4">
+          <p className="text-xs text-zinc-500 mb-2 font-medium">AI Analysis</p>
+          <div className="text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">
+            {response}
+            {isStreaming && <span className="inline-block w-1.5 h-4 bg-emerald-400 animate-pulse ml-0.5 align-middle" />}
+          </div>
+        </div>
+      )}
+    </GlassCard>
+  );
+}
 
 export default function RiskPage() {
   const { holdings } = usePortfolioStore();
@@ -83,7 +206,7 @@ export default function RiskPage() {
       {!enabled && (
         <GlassCard className="p-8 text-center">
           <p className="text-zinc-500 text-sm mb-2">
-            Click "Compute Risk Metrics" to analyze portfolio risk using 90-day historical data.
+            Click &ldquo;Compute Risk Metrics&rdquo; to analyze portfolio risk using 90-day historical data.
           </p>
           <p className="text-zinc-600 text-xs">
             Requires FINNHUB_API_KEY to fetch historical price data.
@@ -136,6 +259,8 @@ export default function RiskPage() {
           )}
         </>
       )}
+
+      <AIRiskAnalysis holdings={holdings} metrics={data?.metrics} />
     </div>
   );
 }

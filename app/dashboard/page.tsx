@@ -2,15 +2,17 @@
 import Link from "next/link";
 import {
     TrendingUp, TrendingDown, BrainCircuit,
-    ArrowUpRight, ArrowDownRight, Zap, Activity,
+    ArrowUpRight, Zap, Activity,
     BarChart3, Shield,
 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { useQuote } from "@/lib/hooks/useQuote";
+import { useQueries } from "@tanstack/react-query";
 import { usePortfolioStore } from "@/lib/stores/portfolioStore";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { LiveDot } from "@/components/ui/LiveDot";
+import type { Quote } from "@/lib/types/market";
 
 const SIGNAL_TICKERS = ["AAPL", "TSLA", "NVDA", "AMZN"];
 
@@ -44,21 +46,30 @@ function QuotePrice({ symbol }: { symbol: string }) {
 
 function PortfolioKPI() {
     const { holdings } = usePortfolioStore();
-    const { data: q1 } = useQuote("AAPL");
 
-    const totalCost = holdings.reduce((s, h) => s + h.avgCost * h.quantity, 0);
-    const portfolioValue = totalCost > 0 ? totalCost : 284930;
+    const quoteQueries = useQueries({
+        queries: holdings.map((h) => ({
+            queryKey: ['quote', h.symbol],
+            queryFn: () => fetch(`/api/market/quote?symbol=${h.symbol}`).then((r): Promise<Quote> => r.json()),
+            staleTime: 30_000,
+        })),
+    });
+
+    const totalValue = holdings.reduce((s, h, i) => {
+        const price = quoteQueries[i]?.data?.price ?? h.avgCost;
+        return s + price * h.quantity;
+    }, 0);
 
     return (
         <GlassCard className="p-5">
             <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Portfolio Value</p>
             <div className="mt-2 mb-1 flex items-baseline gap-2">
-                <AnimatedNumber value={portfolioValue} prefix="$" decimals={0} className="text-2xl font-semibold text-zinc-100" />
+                <AnimatedNumber value={totalValue} prefix="$" decimals={0} className="text-2xl font-semibold text-zinc-100" />
             </div>
             <div className="flex items-center gap-1">
                 <ArrowUpRight size={13} className="text-emerald-400" />
                 <p className="text-xs font-medium text-emerald-400">
-                    {holdings.length > 0 ? `${holdings.length} positions` : "+$1,240 today"}
+                    {holdings.length > 0 ? `${holdings.length} positions` : "No holdings yet"}
                 </p>
             </div>
         </GlassCard>
@@ -79,10 +90,6 @@ export default function DashboardPage() {
                     <p className="text-sm text-zinc-500 mt-1">
                         Welcome back. Here&apos;s your financial snapshot.
                     </p>
-                </div>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-                    <LiveDot />
-                    <span className="text-xs text-emerald-400 font-medium">Markets Open</span>
                 </div>
             </div>
 
